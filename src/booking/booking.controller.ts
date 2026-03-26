@@ -4,6 +4,7 @@ import { DriverService } from '../driver/driver.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CreateBookingDto } from './dto/create-booking.dto';
 
 @Controller('booking')
 @UseGuards(JwtAuthGuard)
@@ -14,9 +15,9 @@ export class BookingController {
   ) {}
 
   @Post()
-  async create(@Body() bookingData: any, @Request() req) {
+  async create(@Body() createBookingDto: CreateBookingDto, @Request() req) {
     return this.bookingService.create({
-      ...bookingData,
+      ...createBookingDto,
       user: req.user.userId,
       status: 'requested',
     });

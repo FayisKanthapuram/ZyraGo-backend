@@ -3,6 +3,7 @@ import { DriverService } from './driver.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { UpdateLocationDto } from './dto/update-location.dto';
 
 @Controller('driver')
 @UseGuards(JwtAuthGuard)
@@ -12,7 +13,7 @@ export class DriverController {
   @Patch('location')
   @Roles('driver')
   @UseGuards(RolesGuard)
-  async updateLocation(@Body() locationData: { lat: number; lng: number }, @Request() req) {
-    return this.driverService.updateLocation(req.user.userId, locationData.lat, locationData.lng);
+  async updateLocation(@Body() updateLocationDto: UpdateLocationDto, @Request() req) {
+    return this.driverService.updateLocation(req.user.userId, updateLocationDto.lat, updateLocationDto.lng);
   }
 }
