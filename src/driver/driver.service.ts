@@ -23,4 +23,8 @@ export class DriverService {
   async updateStatus(driverId: string, status: string): Promise<DriverDocument | null> {
     return this.driverModel.findByIdAndUpdate(driverId, { status }, { new: true }).exec();
   }
+
+  async updateLocation(driverId: string, lat: number, lng: number): Promise<DriverDocument | null> {
+    return this.driverModel.findByIdAndUpdate(driverId, { location: { lat, lng } }, { new: true }).exec();
+  }
 }
