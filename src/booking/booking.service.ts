@@ -72,6 +72,26 @@ export class BookingService {
     return booking.save();
   }
 
+  async startTrip(bookingId: string, driverId: string): Promise<BookingDocument | null> {
+    const booking = await this.findById(bookingId);
+    if (!booking || booking.status !== 'accepted' || booking.driver.toString() !== driverId) {
+      return null;
+    }
+
+    booking.status = 'ongoing';
+    return booking.save();
+  }
+
+  async completeTrip(bookingId: string, driverId: string): Promise<BookingDocument | null> {
+    const booking = await this.findById(bookingId);
+    if (!booking || booking.status !== 'ongoing' || booking.driver.toString() !== driverId) {
+      return null;
+    }
+
+    booking.status = 'completed';
+    return booking.save();
+  }
+
   private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371; // Earth's radius in km
     const dLat = (lat2 - lat1) * (Math.PI / 180);

@@ -70,4 +70,30 @@ export class BookingController {
     // Trigger match for the next driver
     return this.match(id);
   }
+
+  @Patch(':id/start')
+  @Roles('driver')
+  @UseGuards(RolesGuard)
+  async startTrip(@Param('id') id: string, @Request() req) {
+    const booking = await this.bookingService.startTrip(id, req.user.userId);
+    if (!booking) {
+      throw new NotFoundException('Booking not found, not in accepted state, or you are not authorized.');
+    }
+    return booking;
+  }
+
+  @Patch(':id/complete')
+  @Roles('driver')
+  @UseGuards(RolesGuard)
+  async completeTrip(@Param('id') id: string, @Request() req) {
+    const booking = await this.bookingService.completeTrip(id, req.user.userId);
+    if (!booking) {
+      throw new NotFoundException('Booking not found, not in ongoing state, or you are not authorized.');
+    }
+
+    // Free up the driver
+    await this.driverService.updateStatus(req.user.userId, 'available');
+
+    return booking;
+  }
 }
