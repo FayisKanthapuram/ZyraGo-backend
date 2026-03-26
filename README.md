@@ -1,98 +1,154 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🚗 ZyraGo — Driver-on-Demand Platform
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A scalable, modular backend for a driver-on-demand platform built with **NestJS** and **MongoDB**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## ✨ Features
 
-## Description
+- **JWT Authentication** — Secure registration & login for Users and Drivers
+- **Smart Driver Matching** — Haversine-based algorithm assigns the nearest available driver
+- **Booking Lifecycle** — Full trip flow: `requested → assigned → accepted → ongoing → completed`
+- **Driver Actions** — Accept/reject bookings with automatic reassignment on rejection
+- **Role-Based Access Control** — Strict role enforcement (user vs driver) with granular error messages
+- **Real-time Location** — Drivers can update their GPS coordinates
+- **Online/Offline Toggle** — Drivers can set availability status
+- **Input Validation** — DTOs with `class-validator` for all endpoints
+- **Global Error Handling** — Consistent error response format via `HttpExceptionFilter`
+- **API Documentation** — Interactive Swagger UI with JWT auth support
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🛠 Tech Stack
 
-## Project setup
+| Layer          | Technology           |
+|----------------|----------------------|
+| Framework      | NestJS               |
+| Database       | MongoDB (Mongoose)   |
+| Authentication | JWT (Passport)       |
+| Validation     | class-validator      |
+| Documentation  | Swagger (OpenAPI)    |
+| Language       | TypeScript           |
 
-```bash
-$ npm install
-```
+## 🚀 Getting Started
 
-## Compile and run the project
+### Prerequisites
 
-```bash
-# development
-$ npm run start
+- Node.js v18+
+- MongoDB running locally or a MongoDB Atlas URI
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
+### Installation
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+git clone https://github.com/FayisKanthapuram/ZyraGo-backend.git
+cd ZyraGo-backend
+npm install
 ```
 
-## Deployment
+### Environment Variables
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Create a `.env` file in the project root:
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+```env
+PORT=3000
+MONGODB_URI=mongodb://localhost:27017/zyrago
+JWT_SECRET=your_jwt_secret_here
+```
+
+### Run the Server
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Development (watch mode)
+npm run start:dev
+
+# Production
+npm run build
+npm run start:prod
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 📖 API Documentation
 
-## Resources
+Interactive Swagger docs available at:
 
-Check out a few resources that may come in handy when working with NestJS:
+```
+http://localhost:3000/api/docs
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Click the **Authorize** button and paste your JWT token to test protected endpoints.
 
-## Support
+## 📡 API Endpoints
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Auth
 
-## Stay in touch
+| Method | Endpoint                | Description          | Auth |
+|--------|-------------------------|----------------------|------|
+| POST   | `/auth/user/register`   | Register a user      | —    |
+| POST   | `/auth/user/login`      | Login as user        | —    |
+| POST   | `/auth/driver/register` | Register a driver    | —    |
+| POST   | `/auth/driver/login`    | Login as driver      | —    |
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Booking (Requires JWT)
 
-## License
+| Method | Endpoint                   | Description                          | Role   |
+|--------|----------------------------|--------------------------------------|--------|
+| POST   | `/booking`                 | Create a booking                     | User   |
+| PATCH  | `/booking/:id/match`       | Match nearest available driver       | User   |
+| PATCH  | `/booking/:id/accept`      | Accept assigned booking              | Driver |
+| PATCH  | `/booking/:id/reject`      | Reject & auto-reassign               | Driver |
+| PATCH  | `/booking/:id/start`       | Start the trip                       | Driver |
+| PATCH  | `/booking/:id/complete`    | Complete the trip                    | Driver |
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### Driver (Requires JWT + Driver Role)
+
+| Method | Endpoint            | Description                    |
+|--------|---------------------|--------------------------------|
+| PATCH  | `/driver/location`  | Update current GPS location    |
+| PATCH  | `/driver/status`    | Toggle `available` / `offline` |
+
+## 🏗 Project Structure
+
+```
+src/
+├── auth/
+│   ├── dto/                    # RegisterUser, RegisterDriver, Login DTOs
+│   ├── guards/                 # JwtAuthGuard, RolesGuard
+│   ├── decorators/             # @Roles() decorator
+│   ├── strategies/             # JWT Strategy
+│   ├── auth.controller.ts
+│   ├── auth.service.ts
+│   └── auth.module.ts
+├── booking/
+│   ├── dto/                    # CreateBooking DTO
+│   ├── schemas/                # Booking Mongoose schema
+│   ├── booking.controller.ts
+│   ├── booking.service.ts
+│   └── booking.module.ts
+├── driver/
+│   ├── dto/                    # UpdateLocation, UpdateStatus DTOs
+│   ├── schemas/                # Driver Mongoose schema
+│   ├── driver.controller.ts
+│   ├── driver.service.ts
+│   └── driver.module.ts
+├── user/
+│   ├── schemas/                # User Mongoose schema
+│   ├── user.service.ts
+│   └── user.module.ts
+├── common/
+│   └── filters/                # Global HttpExceptionFilter
+├── app.module.ts
+└── main.ts
+```
+
+## 🔐 Error Response Format
+
+All errors follow a consistent JSON structure:
+
+```json
+{
+  "statusCode": 400,
+  "message": ["email must be an email", "password must be at least 6 characters"],
+  "error": "Bad Request",
+  "timestamp": "2026-03-26T12:00:00.000Z",
+  "path": "/auth/user/register"
+}
+```
+
+## 📝 License
+
+MIT
