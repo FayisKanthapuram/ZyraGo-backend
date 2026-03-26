@@ -1,13 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Booking, BookingDocument } from './schemas/booking.schema';
+import { DriverService } from '../driver/driver.service';
 
 @Injectable()
 export class BookingService {
-  constructor(@InjectModel(Booking.name) private bookingModel: Model<BookingDocument>) {}
+  constructor(
+    @InjectModel(Booking.name) private bookingModel: Model<BookingDocument>,
+    private readonly driverService: DriverService,
+  ) {}
 
-  async create(bookingData: any): Promise<BookingDocument> {
+  async create(bookingData: Partial<Booking>): Promise<BookingDocument> {
     const createdBooking = new this.bookingModel(bookingData);
     return createdBooking.save();
   }
@@ -16,15 +20,25 @@ export class BookingService {
     return this.bookingModel.findById(id).exec();
   }
 
-  async matchDriver(bookingId: string, availableDrivers: any[], excludedDriverIds: string[] = []): Promise<BookingDocument | null> {
+  async matchDriver(bookingId: string): Promise<BookingDocument | null> {
     const booking = await this.findById(bookingId);
-    if (!booking || booking.status !== 'requested') return null;
+    if (!booking || booking.status !== 'requested') {
+      return null;
+    }
+
+    const availableDrivers = await this.driverService.findAvailableDrivers();
+    if (availableDrivers.length === 0) {
+      return null; // No drivers available
+    }
 
     let nearestDriver: any = null;
     let minDistance = Infinity;
 
     for (const driver of availableDrivers) {
-      if (excludedDriverIds.includes(driver._id.toString())) continue;
+      if (booking.rejectedDrivers.includes(driver._id as any)) {
+        continue;
+      }
+      
       const d = driver as any;
       const dist = this.calculateDistance(
         booking.pickupLocation.lat,
@@ -35,35 +49,40 @@ export class BookingService {
 
       if (dist < minDistance) {
         minDistance = dist;
-        nearestDriver = d;
+        nearestDriver = driver;
       }
     }
 
-    if (nearestDriver) {
-      booking.driver = nearestDriver._id;
-      booking.status = 'assigned';
-      await booking.save();
-      return booking;
+    if (!nearestDriver) {
+      return null; // All available drivers have rejected
     }
 
-    return null;
+    booking.driver = nearestDriver._id as any;
+    booking.status = 'assigned';
+    await booking.save();
+
+    await this.driverService.updateStatus(nearestDriver._id.toString(), 'busy');
+
+    return booking;
   }
 
-  async acceptBooking(bookingId: string, driverId: string): Promise<BookingDocument | null> {
+  async acceptBooking(bookingId: string, driverId: string): Promise<BookingDocument> {
     const booking = await this.findById(bookingId);
-    if (!booking || booking.status !== 'assigned' || booking.driver.toString() !== driverId) {
-      return null;
-    }
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.driver?.toString() !== driverId) throw new ForbiddenException('You are not authorized to update this booking');
+    if (booking.status !== 'assigned') throw new BadRequestException(`Cannot accept booking in ${booking.status} state`);
 
     booking.status = 'accepted';
     return booking.save();
   }
 
-  async rejectBooking(bookingId: string, driverId: string): Promise<BookingDocument | null> {
+  async rejectBooking(bookingId: string, driverId: string): Promise<BookingDocument> {
     const booking = await this.findById(bookingId);
-    if (!booking || booking.status !== 'assigned' || booking.driver.toString() !== driverId) {
-      return null;
-    }
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.driver?.toString() !== driverId) throw new ForbiddenException('You are not authorized to reject this booking');
+    if (booking.status !== 'assigned') throw new BadRequestException(`Cannot reject booking in ${booking.status} state`);
+
+    await this.driverService.updateStatus(driverId, 'available');
 
     // Add driver to rejected array and set back to requested
     booking.rejectedDrivers.push(driverId as any);
@@ -72,21 +91,21 @@ export class BookingService {
     return booking.save();
   }
 
-  async startTrip(bookingId: string, driverId: string): Promise<BookingDocument | null> {
+  async startTrip(bookingId: string, driverId: string): Promise<BookingDocument> {
     const booking = await this.findById(bookingId);
-    if (!booking || booking.status !== 'accepted' || booking.driver.toString() !== driverId) {
-      return null;
-    }
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.driver?.toString() !== driverId) throw new ForbiddenException('You are not authorized to start this booking');
+    if (booking.status !== 'accepted') throw new BadRequestException(`Cannot start trip in ${booking.status} state`);
 
     booking.status = 'ongoing';
     return booking.save();
   }
 
-  async completeTrip(bookingId: string, driverId: string): Promise<BookingDocument | null> {
+  async completeTrip(bookingId: string, driverId: string): Promise<BookingDocument> {
     const booking = await this.findById(bookingId);
-    if (!booking || booking.status !== 'ongoing' || booking.driver.toString() !== driverId) {
-      return null;
-    }
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.driver?.toString() !== driverId) throw new ForbiddenException('You are not authorized to complete this booking');
+    if (booking.status !== 'ongoing') throw new BadRequestException(`Cannot complete trip in ${booking.status} state`);
 
     booking.status = 'completed';
     return booking.save();

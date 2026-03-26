@@ -15,6 +15,8 @@ export class BookingController {
   ) {}
 
   @Post()
+  @Roles('user')
+  @UseGuards(RolesGuard)
   async create(@Body() createBookingDto: CreateBookingDto, @Request() req) {
     return this.bookingService.create({
       ...createBookingDto,
@@ -24,50 +26,33 @@ export class BookingController {
   }
 
   @Patch(':id/match')
+  @Roles('user')
+  @UseGuards(RolesGuard)
   async match(@Param('id') id: string) {
     const availableDrivers = await this.driverService.findAvailableDrivers();
     if (availableDrivers.length === 0) {
       throw new NotFoundException('No available drivers found');
     }
 
-    const bookingToMatch = await this.bookingService.findById(id);
-    if (!bookingToMatch) throw new NotFoundException('Booking not found');
-
-    const excludedIds = bookingToMatch.rejectedDrivers ? bookingToMatch.rejectedDrivers.map(d => d.toString()) : [];
-    const booking = await this.bookingService.matchDriver(id, availableDrivers, excludedIds);
+    const booking = await this.bookingService.matchDriver(id);
     if (!booking) {
-      throw new NotFoundException('Booking not able to be assigned. Might need more available drivers.');
+      throw new NotFoundException('Booking not found or no available drivers');
     }
-
-    // Update driver status to busy
-    await this.driverService.updateStatus(booking.driver.toString(), 'busy');
-
     return booking;
   }
 
   @Patch(':id/accept')
   @Roles('driver')
   @UseGuards(RolesGuard)
-  async accept(@Param('id') id: string, @Request() req) {
-    const booking = await this.bookingService.acceptBooking(id, req.user.userId);
-    if (!booking) {
-      throw new NotFoundException('Booking not found or you are not authorized to accept it.');
-    }
-    return booking;
+  async acceptBooking(@Param('id') id: string, @Request() req) {
+    return this.bookingService.acceptBooking(id, req.user.userId);
   }
 
   @Patch(':id/reject')
   @Roles('driver')
   @UseGuards(RolesGuard)
-  async reject(@Param('id') id: string, @Request() req) {
-    const booking = await this.bookingService.rejectBooking(id, req.user.userId);
-    if (!booking) {
-      throw new NotFoundException('Booking not found or you are not authorized to reject it.');
-    }
-
-    // Free up the rejecting driver
-    await this.driverService.updateStatus(req.user.userId, 'available');
-
+  async rejectBooking(@Param('id') id: string, @Request() req) {
+    await this.bookingService.rejectBooking(id, req.user.userId);
     // Trigger match for the next driver
     return this.match(id);
   }
@@ -76,11 +61,7 @@ export class BookingController {
   @Roles('driver')
   @UseGuards(RolesGuard)
   async startTrip(@Param('id') id: string, @Request() req) {
-    const booking = await this.bookingService.startTrip(id, req.user.userId);
-    if (!booking) {
-      throw new NotFoundException('Booking not found, not in accepted state, or you are not authorized.');
-    }
-    return booking;
+    return this.bookingService.startTrip(id, req.user.userId);
   }
 
   @Patch(':id/complete')
@@ -88,10 +69,7 @@ export class BookingController {
   @UseGuards(RolesGuard)
   async completeTrip(@Param('id') id: string, @Request() req) {
     const booking = await this.bookingService.completeTrip(id, req.user.userId);
-    if (!booking) {
-      throw new NotFoundException('Booking not found, not in ongoing state, or you are not authorized.');
-    }
-
+    
     // Free up the driver
     await this.driverService.updateStatus(req.user.userId, 'available');
 
