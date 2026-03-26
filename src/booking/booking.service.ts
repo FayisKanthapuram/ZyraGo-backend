@@ -16,7 +16,7 @@ export class BookingService {
     return this.bookingModel.findById(id).exec();
   }
 
-  async matchDriver(bookingId: string, availableDrivers: any[]): Promise<BookingDocument | null> {
+  async matchDriver(bookingId: string, availableDrivers: any[], excludedDriverIds: string[] = []): Promise<BookingDocument | null> {
     const booking = await this.findById(bookingId);
     if (!booking || booking.status !== 'requested') return null;
 
@@ -24,6 +24,7 @@ export class BookingService {
     let minDistance = Infinity;
 
     for (const driver of availableDrivers) {
+      if (excludedDriverIds.includes(driver._id.toString())) continue;
       const d = driver as any;
       const dist = this.calculateDistance(
         booking.pickupLocation.lat,
@@ -46,6 +47,29 @@ export class BookingService {
     }
 
     return null;
+  }
+
+  async acceptBooking(bookingId: string, driverId: string): Promise<BookingDocument | null> {
+    const booking = await this.findById(bookingId);
+    if (!booking || booking.status !== 'assigned' || booking.driver.toString() !== driverId) {
+      return null;
+    }
+
+    booking.status = 'accepted';
+    return booking.save();
+  }
+
+  async rejectBooking(bookingId: string, driverId: string): Promise<BookingDocument | null> {
+    const booking = await this.findById(bookingId);
+    if (!booking || booking.status !== 'assigned' || booking.driver.toString() !== driverId) {
+      return null;
+    }
+
+    // Add driver to rejected array and set back to requested
+    booking.rejectedDrivers.push(driverId as any);
+    booking.driver = null as any;
+    booking.status = 'requested';
+    return booking.save();
   }
 
   private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {

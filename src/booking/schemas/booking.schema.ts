@@ -20,7 +20,10 @@ export class Booking {
   duration: number; // in minutes or hours
 
   @Prop({ default: 'requested' })
-  status: string; // requested, assigned, trip_started, trip_completed, cancelled
+  status: string; // requested, assigned, accepted, trip_started, trip_completed, cancelled
+
+  @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Driver' }], default: [] })
+  rejectedDrivers: Driver[];
 
   @Prop()
   estimatedPrice: number;
