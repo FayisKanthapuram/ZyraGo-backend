@@ -50,40 +50,56 @@ export class BookingService {
 
     const availableDrivers = await this.driverService.findAvailableDrivers();
     if (availableDrivers.length === 0) {
-      return null; // No drivers available
+      return null;
     }
 
-    let nearestDriver: any = null;
+    // Filter and find the best (nearest) driver within their service radius
+    let bestDriver: any = null;
     let minDistance = Infinity;
 
     for (const driver of availableDrivers) {
-      if (booking.rejectedDrivers.includes(driver._id as any)) {
+      // 1. Exclude drivers who already rejected this specific booking
+      if (booking.rejectedDrivers?.includes(driver._id as any)) {
         continue;
       }
-      
+
+      // 2. Validate driver coordinate data
       const d = driver as any;
-      const dist = this.calculateDistance(
+      if (!d.location || typeof d.location.lat !== 'number' || typeof d.location.lng !== 'number') {
+        continue;
+      }
+
+      // 3. Calculate Haversine distance
+      const distance = this.calculateDistance(
         booking.pickupLocation.lat,
         booking.pickupLocation.lng,
         d.location.lat,
         d.location.lng,
       );
 
-      if (dist < minDistance) {
-        minDistance = dist;
-        nearestDriver = driver;
+      // 4. Rule: Only include drivers if they are within their own defined service radius
+      const maxRadius = d.serviceRadius || 5; // Default to 5km if not set
+      
+      if (distance <= maxRadius) {
+        // 5. Best driver = Nearest available driver
+        if (distance < minDistance) {
+          minDistance = distance;
+          bestDriver = driver;
+        }
       }
     }
 
-    if (!nearestDriver) {
-      return null; // All available drivers have rejected
+    if (!bestDriver) {
+      return null;
     }
 
-    booking.driver = nearestDriver._id as any;
+    // Atomic update of booking with assigned driver
+    booking.driver = bestDriver._id as any;
     booking.status = 'assigned';
     await booking.save();
 
-    await this.driverService.updateStatus(nearestDriver._id.toString(), 'busy');
+    // Lock driver status
+    await this.driverService.updateStatus(bestDriver._id.toString(), 'busy');
 
     // Notify rider and new driver via socket
     const updatedBooking = await this.bookingModel.findById(booking._id).populate('driver', 'name phone').exec();

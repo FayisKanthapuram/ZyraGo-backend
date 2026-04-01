@@ -28,8 +28,16 @@ export class DriverService {
     return this.driverModel.findByIdAndUpdate(driverId, { status }, { returnDocument: 'after' }).exec();
   }
 
-  async updateLocation(driverId: string, lat: number, lng: number): Promise<DriverDocument | null> {
-    const driver = await this.driverModel.findByIdAndUpdate(driverId, { location: { lat, lng } }, { returnDocument: 'after' }).exec();
+  async updateLocation(driverId: string, lat: number, lng: number, serviceRadius?: number): Promise<DriverDocument | null> {
+    const updateData: any = { location: { lat, lng } };
+    if (serviceRadius !== undefined) {
+      updateData.serviceRadius = serviceRadius;
+    }
+    const driver = await this.driverModel.findByIdAndUpdate(driverId, { $set: updateData }, { returnDocument: 'after' }).exec();
     return driver;
+  }
+
+  async findById(id: string): Promise<DriverDocument | null> {
+    return this.driverModel.findById(id).exec();
   }
 }

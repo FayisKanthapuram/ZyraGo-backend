@@ -21,7 +21,12 @@ export class DriverController {
   @Roles('driver')
   @UseGuards(RolesGuard)
   async updateLocation(@Body() updateLocationDto: UpdateLocationDto, @Request() req) {
-    return this.driverService.updateLocation(req.user.userId, updateLocationDto.lat, updateLocationDto.lng);
+    return this.driverService.updateLocation(
+      req.user.userId, 
+      updateLocationDto.lat, 
+      updateLocationDto.lng,
+      updateLocationDto.serviceRadius
+    );
   }
 
   @Patch('status')

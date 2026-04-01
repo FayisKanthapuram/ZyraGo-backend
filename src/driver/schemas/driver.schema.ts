@@ -25,6 +25,9 @@ export class Driver {
 
   @Prop({ type: { lat: Number, lng: Number }, default: { lat: 0, lng: 0 } })
   location: { lat: number; lng: number };
+
+  @Prop({ default: 5, min: 1, max: 50 })
+  serviceRadius: number; // in km
 }
 
 export const DriverSchema = SchemaFactory.createForClass(Driver);

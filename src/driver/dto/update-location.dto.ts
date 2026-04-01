@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, Min, Max } from 'class-validator';
 
 export class UpdateLocationDto {
   @ApiProperty({ example: 12.9716, description: 'Current latitude' })
@@ -11,4 +11,11 @@ export class UpdateLocationDto {
   @IsNumber()
   @IsNotEmpty()
   lng: number;
+
+  @ApiProperty({ example: 5, description: 'Service radius in km (1-50)', required: false })
+  @IsNumber()
+  @IsOptional()
+  @Min(1)
+  @Max(50)
+  serviceRadius?: number;
 }
