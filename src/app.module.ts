@@ -7,6 +7,7 @@ import { UserModule } from './user/user.module';
 import { DriverModule } from './driver/driver.module';
 import { BookingModule } from './booking/booking.module';
 import { AuthModule } from './auth/auth.module';
+import { RealtimeModule } from './realtime/realtime.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { AuthModule } from './auth/auth.module';
     DriverModule,
     BookingModule,
     AuthModule,
+    RealtimeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -17,16 +17,43 @@ export class Booking {
   pickupLocation: { lat: number; lng: number };
 
   @Prop({ required: true })
-  duration: number; // in minutes or hours
+  startTime: Date;
+
+  @Prop({ required: true })
+  duration: number; // in minutes
+
+  @Prop()
+  otp: string; // 4-digit verification code
 
   @Prop({ default: 'requested' })
-  status: string; // requested, assigned, accepted, trip_started, trip_completed, cancelled
+  status: string; // requested, assigned, accepted, arrived, ongoing, completed, cancelled
 
   @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Driver' }], default: [] })
   rejectedDrivers: Driver[];
 
   @Prop()
   estimatedPrice: number;
+
+  // Payment & Fare
+  @Prop({ default: 0 })
+  fare: number;
+
+  @Prop({ default: 'pending' })
+  paymentStatus: string; // pending, paid
+
+  // Rating
+  @Prop({ min: 1, max: 5 })
+  rating: number;
+
+  @Prop()
+  ratingComment: string;
+
+  // Trip summary
+  @Prop()
+  completedAt: Date;
+
+  @Prop({ default: 0 })
+  distanceKm: number;
 }
 
 export const BookingSchema = SchemaFactory.createForClass(Booking);

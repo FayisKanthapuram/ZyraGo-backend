@@ -25,4 +25,8 @@ export class CreateBookingDto {
   @IsNumber()
   @IsNotEmpty()
   duration: number;
+
+  @ApiProperty({ example: '2026-04-02T10:00:00Z', description: 'Scheduled start time for the trip' })
+  @IsNotEmpty()
+  startTime: string; // Controller/Service will convert or validate as ISO Date
 }
